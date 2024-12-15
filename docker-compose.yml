@@ -1,39 +1,40 @@
 services:
   bastion:
-    image: ubuntu:20.04
+    build: ./bastion
     container_name: bastion
     networks:
       bastion_net:
         ipv4_address: 192.168.1.2
-    command: ["sleep", "infinity"]
     tty: true
     stdin_open: true
-    volumes:
-      - ./bastion:/data  # 挂载主机文件夹，方便调试
+    depends_on:
+      - instance01
+      - instance02
+    command: >
+      /bin/bash -c "
+      sleep 5 &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@instance01 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@instance02 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      /usr/sbin/sshd -D
+      "
 
   instance01:
-    image: ./instance01
+    build: ./instance01
     container_name: instance01
     networks:
       bastion_net:
         ipv4_address: 192.168.1.10
-    command: ["sleep", "infinity"]
     tty: true
     stdin_open: true
-    volumes:
-      - ./instance01:/data
 
   instance02:
-    image: ./instance02
+    build: ./instance02
     container_name: instance02
     networks:
       bastion_net:
         ipv4_address: 192.168.1.11
-    command: ["sleep", "infinity"]  
     tty: true
     stdin_open: true
-    volumes:
-      - ./instance02:/data
 
 networks:
   bastion_net:
