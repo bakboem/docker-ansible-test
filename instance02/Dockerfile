@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 # 无提示安装 SSH 服务和必要工具
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    openssh-server python3 && \
+    openssh-server python3 sudo && \
     mkdir -p /run/sshd && \
     apt-get clean
 
@@ -22,6 +22,9 @@ RUN sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh
     sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
+RUN echo "instance_user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/instance_user && \
+    chmod 440 /etc/sudoers.d/instance_user
+    
 # 生成 SSH 主机密钥
 RUN ssh-keygen -A
 

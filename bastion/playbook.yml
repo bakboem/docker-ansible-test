@@ -1,0 +1,28 @@
+- name: Configure Auth Instances
+  hosts: auth_instances
+  become: true  # 提升为 root 用户
+  tasks:
+    - name: Install NGINX on Auth Instances
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure NGINX is running
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+- name: Configure API Instances
+  hosts: api_instances
+  become: true  # 提升为 root 用户
+  tasks:
+    - name: Create a test file for API Instances
+      file:
+        path: /tmp/api_instance_test.txt
+        state: touch
+
+    - name: Install curl on API Instances
+      apt:
+        name: curl
+        state: present

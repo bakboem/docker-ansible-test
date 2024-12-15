@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 # 安装必要工具和 SSH 服务
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    openssh-server sshpass python3 python3-pip software-properties-common && \
+    openssh-server sshpass python3 python3-pip sudo software-properties-common && \
     mkdir -p /run/sshd && apt-get clean
 
 # 添加 Ansible 的官方 PPA 并安装 Ansible
