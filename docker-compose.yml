@@ -8,31 +8,53 @@ services:
     tty: true
     stdin_open: true
     depends_on:
-      - instance01
-      - instance02
+      - auth_instance_01
+      - auth_instance_02
+      - api_instance_01
+      - api_instance_02
     command: >
       /bin/bash -c "
       sleep 5 &&
-      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@instance01 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
-      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@instance02 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@auth_instance_01 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@auth_instance_02 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@api_instance_01 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
+      cat /shared/id_rsa.pub | sshpass -p 'instance_password' ssh -o StrictHostKeyChecking=no instance_user@api_instance_02 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys' &&
       /usr/sbin/sshd -D
       "
 
-  instance01:
+  auth_instance_01:
     build: ./instance01
-    container_name: instance01
+    container_name: auth_instance_01
     networks:
       bastion_net:
         ipv4_address: 192.168.1.10
     tty: true
     stdin_open: true
 
-  instance02:
+  auth_instance_02:
     build: ./instance02
-    container_name: instance02
+    container_name: auth_instance_02
     networks:
       bastion_net:
         ipv4_address: 192.168.1.11
+    tty: true
+    stdin_open: true
+
+  api_instance_01:
+    build: ./instance01
+    container_name: api_instance_01
+    networks:
+      bastion_net:
+        ipv4_address: 192.168.1.20
+    tty: true
+    stdin_open: true
+
+  api_instance_02:
+    build: ./instance02
+    container_name: api_instance_02
+    networks:
+      bastion_net:
+        ipv4_address: 192.168.1.21
     tty: true
     stdin_open: true
 

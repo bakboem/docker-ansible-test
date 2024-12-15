@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-add-repository --yes --update ppa:ansible/ansible && \
     apt-get install -y ansible
 
+# 创建 SSH 用户
 RUN useradd -m -d /home/instance_user -s /bin/bash instance_user && \
     echo "instance_user:instance_password" | chpasswd && \
     mkdir -p /home/instance_user/.ssh && \
@@ -33,12 +34,16 @@ RUN mkdir -p /root/.ssh && \
 
 # 将公钥保存到一个共享目录，方便其他容器使用
 RUN mkdir -p /shared && cp /root/.ssh/id_rsa.pub /shared/id_rsa.pub
+
 # 写入 Ansible Inventory 文件
 RUN mkdir -p /etc/ansible && \
-    echo "[instances]" > /etc/ansible/hosts && \
-    echo "instance01 ansible_host=instance01 ansible_user=instance_user" >> /etc/ansible/hosts && \
-    echo "instance02 ansible_host=instance02 ansible_user=instance_user" >> /etc/ansible/hosts
-
+    echo "[auth_instances]" > /etc/ansible/hosts && \
+    echo "auth_instance_01 ansible_host=auth_instance_01 ansible_user=instance_user" >> /etc/ansible/hosts && \
+    echo "auth_instance_02 ansible_host=auth_instance_02 ansible_user=instance_user" >> /etc/ansible/hosts && \
+    echo "" >> /etc/ansible/hosts && \
+    echo "[api_instances]" >> /etc/ansible/hosts && \
+    echo "api_instance_01 ansible_host=api_instance_01 ansible_user=instance_user" >> /etc/ansible/hosts && \
+    echo "api_instance_02 ansible_host=api_instance_02 ansible_user=instance_user" >> /etc/ansible/hosts
 
 # 启动 SSH 服务
 EXPOSE 22
