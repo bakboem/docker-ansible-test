@@ -1,28 +1,31 @@
-- name: Configure Auth Instances
-  hosts: auth_instances
-  become: true  # 提升为 root 用户
+- name: Main Playbook
+  hosts: localhost
+  vars:
+    region: "ap-northeast-2"
+    repo_name: "codera/auth_image"
+    tag: "latest"
+    output_file: "/tmp/auth_image.tar"
   tasks:
-    - name: Install NGINX on Auth Instances
-      apt:
-        name: nginx
+    - name: Ensure jq is installed
+      ansible.builtin.package:
+        name: jq
         state: present
+      when: ansible_os_family in ["Debian", "RedHat"]
 
-    - name: Ensure NGINX is running
-      service:
-        name: nginx
-        state: started
-        enabled: true
+    - name: Download image layers from ECR
+      include_tasks: ecr_download.yml
+      vars:
+        repository_name: "{{ repo_name }}"
+        image_tag: "{{ tag }}"
+        tarball_path: "{{ output_file }}"
+        aws_region: "{{ region }}"
 
-- name: Configure API Instances
-  hosts: api_instances
-  become: true  # 提升为 root 用户
-  tasks:
-    - name: Create a test file for API Instances
-      file:
-        path: /tmp/api_instance_test.txt
-        state: touch
+    - name: Deploy to auth instances
+      include_tasks: auth_instances.yml
+      vars:
+        image_tarball: "{{ output_file }}"
 
-    - name: Install curl on API Instances
-      apt:
-        name: curl
-        state: present
+    - name: Deploy to API instances
+      include_tasks: api_instances.yml
+      vars:
+        image_tarball: "{{ output_file }}"

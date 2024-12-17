@@ -3,12 +3,22 @@ FROM ubuntu:20.04
 # 安装必要工具和 SSH 服务
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    openssh-server sshpass python3 python3-pip sudo software-properties-common && \
+    curl openssh-server sshpass python3 python3-pip sudo software-properties-common && \
     mkdir -p /run/sshd && apt-get clean
 
 # 添加 Ansible 的官方 PPA 并安装 Ansible
 RUN apt-add-repository --yes --update ppa:ansible/ansible && \
     apt-get install -y ansible
+
+# 下载并安装 AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws
+
+# 确保 AWS CLI 在 PATH 中
+RUN echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
+
 
 # 创建 SSH 用户
 RUN useradd -m -d /home/instance_user -s /bin/bash instance_user && \

@@ -1,0 +1,16 @@
+- name: Deploy API image to instances
+  hosts: api_instances
+  tasks:
+    - name: Copy tarball to instance
+      copy:
+        src: "{{ image_tarball }}"
+        dest: /tmp/api_image.tar
+
+    - name: Extract and load image on instance
+      shell: tar -xvf /tmp/api_image.tar -C /tmp/layers && echo "Image extracted."
+
+    - name: Start API services
+      shell: >
+        echo "Starting API services using loaded image."
+      args:
+        chdir: /path/to/api/docker-compose

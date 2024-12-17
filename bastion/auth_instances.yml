@@ -1,0 +1,16 @@
+- name: Deploy auth image to instances
+  hosts: auth_instances
+  tasks:
+    - name: Copy tarball to instance
+      copy:
+        src: "{{ image_tarball }}"
+        dest: /tmp/auth_image.tar
+
+    - name: Extract and load image on instance
+      shell: tar -xvf /tmp/auth_image.tar -C /tmp/layers && echo "Image extracted."
+
+    - name: Start auth services
+      shell: >
+        echo "Starting auth services using loaded image."
+      args:
+        chdir: /path/to/auth/docker-compose

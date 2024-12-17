@@ -9,6 +9,9 @@ services:
     stdin_open: true
     volumes:
       - ./bastion/playbook.yml:/etc/ansible/playbook.yml
+      - ./bastion/ecr_download.yml:/etc/ansible/ecr_download.yml
+      - ./bastion/auth_instances.yml:/etc/ansible/auth_instances.yml
+      - ./bastion/api_instances.yml:/etc/ansible/api_instances.yml
     depends_on:
       - auth_instance_01
       - auth_instance_02

@@ -1,0 +1,41 @@
+- name: Fetch image manifest from ECR
+  shell: >
+    aws ecr batch-get-image
+    --repository-name {{ repository_name }}
+    --image-ids imageTag={{ image_tag }}
+    --region {{ aws_region }}
+    --query 'images[].imageManifest'
+    --output text
+  register: manifest_result
+  failed_when: manifest_result.stdout == ""
+  changed_when: false
+
+- name: Save manifest to local file
+  copy:
+    content: "{{ manifest_result.stdout }}"
+    dest: /tmp/image_manifest.json
+
+- name: Parse layer digests
+  shell: >
+    jq -r '.layers[].digest' /tmp/image_manifest.json
+  register: layer_digests
+  failed_when: layer_digests.stdout == ""
+  changed_when: false
+
+- name: Download each layer
+  shell: >
+    curl -o /tmp/layers/{{ item }}.tar.gz $(aws ecr get-download-url-for-layer
+    --repository-name {{ repository_name }}
+    --layer-digest {{ item }}
+    --region {{ aws_region }}
+    --query 'downloadUrl'
+    --output text)
+  loop: "{{ layer_digests.stdout_lines }}"
+  args:
+    creates: "/tmp/layers/{{ item }}.tar.gz"
+
+- name: Create tarball from downloaded layers
+  shell: >
+    tar -cvf {{ tarball_path }} -C /tmp/layers .
+  args:
+    creates: "{{ tarball_path }}"
